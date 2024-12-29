@@ -1,1 +1,2 @@
 food_calorie_model_inceptionv3.h5 filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text

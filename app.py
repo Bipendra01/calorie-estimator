@@ -24,7 +24,7 @@ class NumpyEncoder(JSONEncoder):
 # -------------------------------
 # Flask App Initialization
 # -------------------------------
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 app.json_encoder = NumpyEncoder
 
 # -------------------------------
@@ -120,4 +120,4 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)

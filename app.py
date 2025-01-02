@@ -43,16 +43,27 @@ download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
 
 # Step 2: Load Calorie Dataset
 try:
-    calorie_data = pd.read_csv(CALORIE_PATH, delimiter=',', on_bad_lines='skip', encoding='utf-8', header=0)
+    # Read CSV explicitly
+    calorie_data = pd.read_csv(
+        CALORIE_PATH,
+        delimiter=',',
+        on_bad_lines='skip',
+        encoding='utf-8',
+        header=0  # Use the first row as header
+    )
     
-    # If the header row is missing, set column names manually
-    if 'food_label' not in calorie_data.columns or 'calories' not in calorie_data.columns:
+    # If the columns are incorrect, manually enforce them
+    if list(calorie_data.columns) != ['food_label', 'calories']:
         calorie_data.columns = ['food_label', 'calories']
-    print("Column Names in Dataset:", calorie_data.columns)  # Debug column names
+    
+    # Create the calorie mapping
     CALORIE_VALUES_DICT = {row['food_label']: row['calories'] for _, row in calorie_data.iterrows()}
     print("Calorie dataset loaded successfully.")
+    
 except pd.errors.ParserError as e:
     raise Exception(f"Failed to parse calorie dataset: {e}")
+except ValueError as e:
+    raise Exception(f"ValueError: {e}")
 except Exception as e:
     raise Exception(f"Failed to load calorie dataset: {e}")
 

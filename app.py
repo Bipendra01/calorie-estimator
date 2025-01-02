@@ -30,17 +30,32 @@ class NumpyEncoder(JSONEncoder):
 # Flask App Initialization
 app = Flask(__name__)
 # Enable CORS for all routes
+# Enable CORS with security configurations
 CORS(app, resources={
     r"/*": {
         "origins": [
             "https://calorie-estimator-to6k.onrender.com",  # Your frontend domain
-            "http://localhost:3000",  # Local development
-            "http://127.0.0.1:5000"   # Local development alternative
+            "https://calorie-estimator-to6k.onrender.com/",  # With trailing slash
+            "http://localhost:3000",
+            "http://127.0.0.1:5000"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type"],
+        "supports_credentials": True,
+        "max_age": 600
     }
 })
+
+# Additional security headers
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'https://calorie-estimator-to6k.onrender.com')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
 app.json_encoder = NumpyEncoder
 
 # Environment Switch

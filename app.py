@@ -6,12 +6,28 @@ from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 from dotenv import load_dotenv
+from io import BytesIO
+from json import JSONEncoder
 
 # Load Environment Variables
 load_dotenv()
 
+# -------------------------------
+# Custom JSON Encoder
+# -------------------------------
+class NumpyEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NumpyEncoder, self).default(obj)
+
 # Flask App Initialization
 app = Flask(__name__)
+app.json_encoder = NumpyEncoder
 
 # Environment Switch
 ENVIRONMENT = os.getenv("ENV", "local")  # "local" or "production"
@@ -20,25 +36,6 @@ ENVIRONMENT = os.getenv("ENV", "local")  # "local" or "production"
 # os.makedirs('data', exist_ok=True)
 MODEL_PATH = "food_calorie_model_inceptionv3.h5"
 FOOD_LABELS_PATH = "food_labels.txt"
-
-# Google Drive URLs from Environment Variables
-# MODEL_URL = os.getenv("MODEL_URL")
-# FOOD_LABELS_URL = os.getenv("FOOD_LABELS_URL")
-
-# Function to Download Files Dynamically
-# def download_file_if_missing(url, local_path, file_description):
-#     if not os.path.exists(local_path):
-#         print(f"Downloading {file_description} from Google Drive...")
-#         gdown.download(url, local_path, quiet=False)
-#         print(f"{file_description} downloaded successfully.")
-#     else:
-#         print(f"{file_description} already exists locally.")
-
-# Step 1: Download Files
-# download_file_if_missing(MODEL_URL, MODEL_PATH, "Model File")
-# download_file_if_missing(CALORIE_DATASET_URL, CALORIE_PATH, "Calorie Dataset")
-# download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
-
 CALORIE_PATH = "calories.csv"
 
 # Step 2: Load Calorie Dataset
@@ -98,28 +95,49 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'image' not in request.files:
-        return jsonify({"error": "No image uploaded"}), 400
+    # Check for Base64 image data
+    if request.is_json:
+        data = request.get_json()
+        if 'image_data' not in data:
+            return jsonify({"error": "No image data found in request"}), 400
+        try:
+            # Decode Base64 image
+            image_data = base64.b64decode(data['image_data'])
+            image = BytesIO(image_data)
+        except Exception as e:
+            return jsonify({"error": f"Invalid Base64 data: {e}"}), 400
     
-    file = request.files['image']
-    file_path = os.path.join('uploads', file.filename)
-    os.makedirs('uploads', exist_ok=True)
-    file.save(file_path)
-    
+    # Check for file upload
+    elif 'image' in request.files:
+        file = request.files['image']
+        image = file
+    else:
+        return jsonify({"error": "No image provided"}), 400
+
     try:
-        processed_image = preprocess_image(file_path)
+        # Preprocess the image
+        processed_image = preprocess_image(image)
+        
+        # Predict using the model
         predictions = model.predict(processed_image)
         predicted_index = np.argmax(predictions)
-        food_label = FOOD_LABELS[predicted_index]
-        calories = CALORIE_VALUES_DICT.get(food_label, 200)
-        confidence = float(predictions[0][predicted_index])
         
+        # Print predictions for debugging
+        print(f"Predictions: {predictions}")
+        print(f"Predicted Index: {predicted_index}")
+        
+        food_label = str(FOOD_LABELS[predicted_index])  # Convert to string
+        calories = int(CALORIE_VALUES[predicted_index])  # Convert to Python int
+        confidence = float(predictions[0][predicted_index])  # Convert to Python float
+        
+        # Return the prediction result
         return jsonify({
             "food": food_label,
             "calories": calories,
             "confidence": confidence
         })
     except Exception as e:
+        print(f"Error details: {str(e)}")  # Added for debugging
         return jsonify({"error": str(e)}), 500
     finally:
         if os.path.exists(file_path):

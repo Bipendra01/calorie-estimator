@@ -43,7 +43,8 @@ download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
 
 # Step 2: Load Calorie Dataset
 try:
-    calorie_data = pd.read_csv(CALORIE_PATH, delimiter=',', error_bad_lines=False, encoding='utf-8')
+    # Use 'on_bad_lines' instead of 'error_bad_lines'
+    calorie_data = pd.read_csv(CALORIE_PATH, delimiter=',', on_bad_lines='skip', encoding='utf-8')
     CALORIE_VALUES_DICT = {row['food_label']: row['calories'] for _, row in calorie_data.iterrows()}
     print("Calorie dataset loaded successfully.")
 except pd.errors.ParserError as e:

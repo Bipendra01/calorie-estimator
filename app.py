@@ -17,27 +17,27 @@ app = Flask(__name__)
 ENVIRONMENT = os.getenv("ENV", "local")  # "local" or "production"
 
 # Paths
-os.makedirs('data', exist_ok=True)
+# os.makedirs('data', exist_ok=True)
 MODEL_PATH = "food_calorie_model_inceptionv3.h5"
-FOOD_LABELS_PATH = "data/food_labels.txt"
+FOOD_LABELS_PATH = "food_labels.txt"
 
 # Google Drive URLs from Environment Variables
-MODEL_URL = os.getenv("MODEL_URL")
-FOOD_LABELS_URL = os.getenv("FOOD_LABELS_URL")
+# MODEL_URL = os.getenv("MODEL_URL")
+# FOOD_LABELS_URL = os.getenv("FOOD_LABELS_URL")
 
 # Function to Download Files Dynamically
-def download_file_if_missing(url, local_path, file_description):
-    if not os.path.exists(local_path):
-        print(f"Downloading {file_description} from Google Drive...")
-        gdown.download(url, local_path, quiet=False)
-        print(f"{file_description} downloaded successfully.")
-    else:
-        print(f"{file_description} already exists locally.")
+# def download_file_if_missing(url, local_path, file_description):
+#     if not os.path.exists(local_path):
+#         print(f"Downloading {file_description} from Google Drive...")
+#         gdown.download(url, local_path, quiet=False)
+#         print(f"{file_description} downloaded successfully.")
+#     else:
+#         print(f"{file_description} already exists locally.")
 
 # Step 1: Download Files
-download_file_if_missing(MODEL_URL, MODEL_PATH, "Model File")
+# download_file_if_missing(MODEL_URL, MODEL_PATH, "Model File")
 # download_file_if_missing(CALORIE_DATASET_URL, CALORIE_PATH, "Calorie Dataset")
-download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
+# download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
 
 CALORIE_PATH = "calories.csv"
 

@@ -1,4 +1,5 @@
 import os
+import base64
 import gdown
 import pandas as pd
 from flask import Flask, request, jsonify, render_template
@@ -33,7 +34,6 @@ app.json_encoder = NumpyEncoder
 ENVIRONMENT = os.getenv("ENV", "local")  # "local" or "production"
 
 # Paths
-# os.makedirs('data', exist_ok=True)
 MODEL_PATH = "food_calorie_model_inceptionv3.h5"
 FOOD_LABELS_PATH = "food_labels.txt"
 CALORIE_PATH = "calories.csv"
@@ -122,13 +122,18 @@ def predict():
         predictions = model.predict(processed_image)
         predicted_index = np.argmax(predictions)
         
-        # Print predictions for debugging
-        print(f"Predictions: {predictions}")
-        print(f"Predicted Index: {predicted_index}")
+        # Get the predicted food label
+        food_label = str(FOOD_LABELS[predicted_index])
         
-        food_label = str(FOOD_LABELS[predicted_index])  # Convert to string
-        calories = int(CALORIE_VALUES[predicted_index])  # Convert to Python int
-        confidence = float(predictions[0][predicted_index])  # Convert to Python float
+        # Get calories using the food label as the key
+        calories = CALORIE_VALUES_DICT.get(food_label, 0)  # Use get() with default value
+        confidence = float(predictions[0][predicted_index])
+        
+        # Print debug information
+        print(f"Predicted food label: {food_label}")
+        print(f"Calories: {calories}")
+        print(f"Confidence: {confidence}")
+        print(f"Available food labels in dict: {list(CALORIE_VALUES_DICT.keys())}")
         
         # Return the prediction result
         return jsonify({
@@ -137,11 +142,8 @@ def predict():
             "confidence": confidence
         })
     except Exception as e:
-        print(f"Error details: {str(e)}")  # Added for debugging
+        print(f"Error details: {str(e)}")
         return jsonify({"error": str(e)}), 500
-    finally:
-        if os.path.exists(file_path):
-            os.remove(file_path)
 
 # Run the App
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ from PIL import Image
 from dotenv import load_dotenv
 from io import BytesIO
 from json import JSONEncoder
+from flask_cors import CORS  
 
 # Load Environment Variables
 load_dotenv()
@@ -28,6 +29,18 @@ class NumpyEncoder(JSONEncoder):
 
 # Flask App Initialization
 app = Flask(__name__)
+# Enable CORS for all routes
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://calorie-estimator-to6k.onrender.com",  # Your frontend domain
+            "http://localhost:3000",  # Local development
+            "http://127.0.0.1:5000"   # Local development alternative
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 app.json_encoder = NumpyEncoder
 
 # Environment Switch

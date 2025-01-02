@@ -9,9 +9,9 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 # -------------------------------
 # � Dataset Paths
 # -------------------------------
-TRAIN_DIR = 'dummyDataSet/images'
-VAL_DIR = 'dummyDataSet/images'
-CALORIE_CSV = 'calories.csv'
+TRAIN_DIR = 'data/dummyDataSet/images'
+VAL_DIR = 'data/dummyDataSet/images'
+CALORIE_CSV = 'data/calories.csv'
 MODEL_SAVE_PATH = 'food_calorie_model_inceptionv3.h5'
 # -------------------------------
 # � Image Preprocessing

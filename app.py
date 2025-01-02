@@ -1,62 +1,70 @@
 import os
-import base64
+import gdown
 import pandas as pd
 from flask import Flask, request, jsonify, render_template
 from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
-from io import BytesIO
-from json import JSONEncoder
+from dotenv import load_dotenv
 
-# -------------------------------
-# Custom JSON Encoder
-# -------------------------------
-class NumpyEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NumpyEncoder, self).default(obj)
+# Load Environment Variables
+load_dotenv()
 
-# -------------------------------
 # Flask App Initialization
-# -------------------------------
-app = Flask(__name__, static_folder='static', template_folder='templates')
-app.json_encoder = NumpyEncoder
+app = Flask(__name__)
 
-# -------------------------------
-# Paths and Configuration
-# -------------------------------
+# Environment Switch
+ENVIRONMENT = os.getenv("ENV", "local")  # "local" or "production"
+
+# Paths
+os.makedirs('data', exist_ok=True)
 MODEL_PATH = "food_calorie_model_inceptionv3.h5"
-DATASET_PATH = "dummyDataSet/images"
-CALORIE_CSV_PATH = "calories.csv"
+CALORIE_PATH = "data/calories.csv"
+FOOD_LABELS_PATH = "data/food_labels.txt"
 
-# Load Food Labels
-try:
-    FOOD_LABELS = sorted(os.listdir(DATASET_PATH))
-except FileNotFoundError:
-    raise Exception(f"Dataset path '{DATASET_PATH}' not found.")
+# Google Drive URLs from Environment Variables
+MODEL_URL = os.getenv("MODEL_URL")
+CALORIE_DATASET_URL = os.getenv("CALORIE_DATASET_URL")
+FOOD_LABELS_URL = os.getenv("FOOD_LABELS_URL")
 
-# Load Calorie Mapping
+# Function to Download Files Dynamically
+def download_file_if_missing(url, local_path, file_description):
+    if not os.path.exists(local_path):
+        print(f"Downloading {file_description} from Google Drive...")
+        gdown.download(url, local_path, quiet=False)
+        print(f"{file_description} downloaded successfully.")
+    else:
+        print(f"{file_description} already exists locally.")
+
+# Step 1: Download Files
+download_file_if_missing(MODEL_URL, MODEL_PATH, "Model File")
+download_file_if_missing(CALORIE_DATASET_URL, CALORIE_PATH, "Calorie Dataset")
+download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
+
+# Step 2: Load Calorie Dataset
 try:
-    calorie_data = pd.read_csv(CALORIE_CSV_PATH)
-    CALORIE_VALUES = [calorie_data.loc[calorie_data['food_label'] == label, 'calories'].values[0] if
-                     label in calorie_data['food_label'].values else 200 for label in FOOD_LABELS]
+    calorie_data = pd.read_csv(CALORIE_PATH)
+    CALORIE_VALUES_DICT = {row['food_label']: row['calories'] for _, row in calorie_data.iterrows()}
+    print("Calorie dataset loaded successfully.")
 except Exception as e:
-    raise Exception(f"Error loading calorie data: {e}")
+    raise Exception(f"Failed to load calorie dataset: {e}")
 
-# Load the Trained Model
+# Step 3: Load Food Labels
+try:
+    with open(FOOD_LABELS_PATH, 'r') as f:
+        FOOD_LABELS = [line.strip() for line in f.readlines()]
+    print("Food labels loaded successfully.")
+except Exception as e:
+    raise Exception(f"Failed to load food labels: {e}")
+
+# Step 4: Load Model
 try:
     model = load_model(MODEL_PATH)
+    print("Model loaded successfully.")
 except Exception as e:
     raise Exception(f"Failed to load model: {e}")
 
-# -------------------------------
 # Image Preprocessing
-# -------------------------------
 def preprocess_image(image, target_size=(299, 299)):
     try:
         img = Image.open(image).convert('RGB').resize(target_size)
@@ -65,59 +73,40 @@ def preprocess_image(image, target_size=(299, 299)):
     except Exception as e:
         raise ValueError(f"Error processing image: {e}")
 
-# -------------------------------
 # Routes
-# -------------------------------
 @app.route('/')
-def index():
+def home():
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Check for Base64 image data
-    if request.is_json:
-        data = request.get_json()
-        if 'image_data' not in data:
-            return jsonify({"error": "No image data found in request"}), 400
-        try:
-            # Decode Base64 image
-            image_data = base64.b64decode(data['image_data'])
-            image = BytesIO(image_data)
-        except Exception as e:
-            return jsonify({"error": f"Invalid Base64 data: {e}"}), 400
+    if 'image' not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
     
-    # Check for file upload
-    elif 'image' in request.files:
-        file = request.files['image']
-        image = file
-    else:
-        return jsonify({"error": "No image provided"}), 400
-
+    file = request.files['image']
+    file_path = os.path.join('uploads', file.filename)
+    os.makedirs('uploads', exist_ok=True)
+    file.save(file_path)
+    
     try:
-        # Preprocess the image
-        processed_image = preprocess_image(image)
-        
-        # Predict using the model
+        processed_image = preprocess_image(file_path)
         predictions = model.predict(processed_image)
         predicted_index = np.argmax(predictions)
+        food_label = FOOD_LABELS[predicted_index]
+        calories = CALORIE_VALUES_DICT.get(food_label, 200)
+        confidence = float(predictions[0][predicted_index])
         
-        # Print predictions for debugging
-        print(f"Predictions: {predictions}")
-        print(f"Predicted Index: {predicted_index}")
-        
-        food_label = str(FOOD_LABELS[predicted_index])  # Convert to string
-        calories = int(CALORIE_VALUES[predicted_index])  # Convert to Python int
-        confidence = float(predictions[0][predicted_index])  # Convert to Python float
-        
-        # Return the prediction result
         return jsonify({
             "food": food_label,
             "calories": calories,
             "confidence": confidence
         })
     except Exception as e:
-        print(f"Error details: {str(e)}")  # Added for debugging
         return jsonify({"error": str(e)}), 500
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
+# Run the App
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True if ENVIRONMENT == "local" else False)

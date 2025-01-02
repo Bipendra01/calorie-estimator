@@ -19,12 +19,10 @@ ENVIRONMENT = os.getenv("ENV", "local")  # "local" or "production"
 # Paths
 os.makedirs('data', exist_ok=True)
 MODEL_PATH = "food_calorie_model_inceptionv3.h5"
-CALORIE_PATH = "data/calories.csv"
 FOOD_LABELS_PATH = "data/food_labels.txt"
 
 # Google Drive URLs from Environment Variables
 MODEL_URL = os.getenv("MODEL_URL")
-CALORIE_DATASET_URL = os.getenv("CALORIE_DATASET_URL")
 FOOD_LABELS_URL = os.getenv("FOOD_LABELS_URL")
 
 # Function to Download Files Dynamically
@@ -38,8 +36,10 @@ def download_file_if_missing(url, local_path, file_description):
 
 # Step 1: Download Files
 download_file_if_missing(MODEL_URL, MODEL_PATH, "Model File")
-download_file_if_missing(CALORIE_DATASET_URL, CALORIE_PATH, "Calorie Dataset")
+# download_file_if_missing(CALORIE_DATASET_URL, CALORIE_PATH, "Calorie Dataset")
 download_file_if_missing(FOOD_LABELS_URL, FOOD_LABELS_PATH, "Food Labels File")
+
+CALORIE_PATH = "calories.csv"
 
 # Step 2: Load Calorie Dataset
 try:

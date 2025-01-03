@@ -6,87 +6,150 @@
     <title>Food Calorie Estimator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* General Styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #FF8787;
+            --accent-color: #FFA07A;
+            --background-color: rgba(248, 250, 252, 0.95);
+            --card-background: rgba(255, 255, 255, 0.95);
+            --text-color: #4A4A4A;
+            --error-color: #ef4444;
+            --success-color: #4BB543;
         }
 
-        /* Header */
-        .header {
-            position: sticky;
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23FF6B6B' opacity='0.1'%3E%3Cpath d='M50,25 L75,50 L50,75 L25,50 Z'/%3E%3C/svg%3E"),
+                        url("/api/placeholder/1920/1080") center/cover fixed;
+            background-blend-mode: overlay;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
             top: 0;
-            background: #28a745;
-            color: #fff;
-            padding: 15px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 135, 135, 0.1) 100%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' opacity='0.05'%3E%3Cpath d='M30,15 C35,15 40,20 40,25 C40,30 35,35 30,35 C25,35 20,30 20,25 C20,20 25,15 30,15 Z'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B6B, #FF8787);
+            color: white;
+            padding: 1.5rem;
             text-align: center;
-            z-index: 1000;
+            box-shadow: 0 4px 15px -3px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='white' opacity='0.1'%3E%3Cpath d='M50,25 A25,25 0 1,1 50,75 A25,25 0 1,1 50,25 M50,35 A15,15 0 1,0 50,65 A15,15 0 1,0 50,35'/%3E%3C/svg%3E");
+            background-size: 100px 100px;
+            animation: headerPattern 60s linear infinite;
+        }
+
+        @keyframes headerPattern {
+            0% { background-position: 0 0; }
+            100% { background-position: 1000px 0; }
         }
 
         .header h1 {
             margin: 0;
-            font-size: 1.8em;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            position: relative;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* Container */
         .container {
             max-width: 800px;
-            margin: 20px auto;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            padding: 20px;
+            margin: 2rem auto;
+            background: var(--card-background);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        /* Rest of your existing styles remain the same */
         .content p {
-            font-size: 1rem;
-            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #64748b;
             text-align: center;
+            margin-bottom: 2rem;
         }
 
-        /* Video and Image Styles */
         .video-container {
-            margin: 20px auto;
+            margin: 2rem auto;
             text-align: center;
-            max-width: 400px;
+            max-width: 480px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         video, img {
             width: 100%;
-            border-radius: 10px;
-            margin: 10px auto;
+            border-radius: 1rem;
+            margin: 0 auto;
             display: block;
+            object-fit: cover;
         }
 
         .controls {
-            margin-top: 10px;
+            margin-top: 1.5rem;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 1rem;
         }
 
         .controls button {
-            padding: 10px 20px;
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 5px;
-            background: #007bff;
+            border-radius: 0.5rem;
+            background: var(--primary-color);
             color: white;
-            font-size: 16px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .controls button:hover {
-            background: #0056b3;
+            background: var(--secondary-color);
+            transform: translateY(-1px);
         }
 
-        /* Upload Section */
         .upload-section {
-            margin: 20px 0;
+            margin: 2rem 0;
             text-align: center;
         }
 
@@ -95,69 +158,144 @@
         }
 
         .upload-section label {
-            display: inline-block;
-            padding: 10px 20px;
-            border: 2px dashed #28a745;
-            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            padding: 1rem 2rem;
+            border: 2px dashed var(--primary-color);
+            border-radius: 0.5rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.8);
         }
 
         .upload-section label:hover {
-            background: #28a745;
+            background: var(--primary-color);
             color: white;
+            transform: translateY(-1px);
         }
 
-        /* Results Section */
         .result {
-            margin-top: 20px;
-            padding: 15px;
-            background: linear-gradient(135deg, #28a745, #218838);
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
             color: white;
-            border-radius: 5px;
+            border-radius: 0.5rem;
             text-align: center;
             display: none;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .action-buttons {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-            margin-bottom: 55px;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 4rem;
             display: none;
         }
 
         .action-buttons button {
-            padding: 10px 15px;
-            font-size: 16px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
             border: none;
-            border-radius: 5px;
+            border-radius: 0.5rem;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .submit-btn {
-            background: #28a745;
+            background: var(--primary-color);
             color: white;
+        }
+
+        .submit-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
         }
 
         .cancel-btn {
-            background: #dc3545;
+            background: var(--error-color);
             color: white;
         }
 
-        /* Loading Spinner */
+        .cancel-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
         .loading-spinner {
             display: none;
-            margin: 20px auto;
+            margin: 1.5rem auto;
             text-align: center;
         }
 
         .loading-spinner i {
-            font-size: 2em;
-            color: #28a745;
+            font-size: 2rem;
+            color: var(--primary-color);
             animation: spin 1s infinite linear;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: rgba(254, 226, 226, 0.9);
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        footer {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+            color: #fff;
+            text-align: center;
+            padding: 1rem 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        footer {
+            background: linear-gradient(135deg, rgba(74, 74, 74, 0.95), rgba(54, 54, 54, 0.95));
+            padding: 0.5rem 0;
+            color: white;
+        }
+
+        footer i.fa-heart {
+            color: var(--primary-color);
+            animation: heartbeat 1.5s ease infinite;
+        }
+
+        footer i.fa-star {
+            color: rgb(229, 229, 7);
+            animation: heartbeat 1.5s ease infinite;
+        }
+
+        .header i.fa-utensils {
+            animation: utensils 2s ease infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes utensils {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
 
         @keyframes spin {
@@ -165,44 +303,71 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Error Message */
-        .error-message {
-            color: #dc3545;
-            text-align: center;
-            margin-top: 10px;
-            display: none;
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        footer {
-            background: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls button {
+                padding: 0.5rem 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-buttons button {
+                width: 100%;
+            }
         }
     </style>
 </head>
+<!-- Rest of your HTML and JavaScript code remains the same -->
 <body>
     <div class="header">
-        <h1>Food Calorie Estimator</h1>
+        <h1><i class="fas fa-utensils"></i> Food Calorie Estimator</h1>
     </div>
 
     <div class="container">
         <div class="content">
-            <p>Upload a food image or take a picture using your webcam to estimate calories (per 100 grams).</p>
+            <p>
+                <i class="fas fa-camera"></i> Take a photo or 
+                <i class="fas fa-upload"></i> upload an image to estimate calories per 100 grams
+            </p>
 
             <div class="video-container">
                 <video id="video" autoplay playsinline></video>
             </div>
             <div class="controls">
-                <button id="captureBtn"><i class="fas fa-camera"></i> Capture Image</button>
+                <button id="captureBtn">
+                    <i class="fas fa-camera"></i>
+                    Take Photo
+                </button>
             </div>
 
             <div class="upload-section">
                 <input type="file" id="imageInput" accept="image/*">
-                <label for="imageInput"><i class="fas fa-upload"></i> Upload Image</label>
+                <label for="imageInput">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Choose a food image
+                </label>
             </div>
 
             <img id="imagePreview" alt="Image Preview" style="display:none;">
@@ -216,17 +381,28 @@
             <div id="result" class="result"></div>
 
             <div class="action-buttons">
-                <button class="submit-btn" id="submitBtn">Analyze Image</button>
-                <button class="cancel-btn" id="cancelBtn">Cancel</button>
+                <button class="submit-btn" id="submitBtn">
+                    <i class="fas fa-search"></i>
+                    Analyze Image
+                </button>
+                <button class="cancel-btn" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2024 Developed by GEETANJALI SONI <i class="fas fa-star"></i></p>
+        <p>
+            Developed with <i class="fas fa-heart"></i> by GEETANJALI SONI 
+            <i class="fas fa-star"></i>
+        </p>
     </footer>
 
+    <!-- Your existing JavaScript remains unchanged -->
     <script>
+        // Your existing JavaScript code remains the same
         const video = document.getElementById("video");
         const captureBtn = document.getElementById("captureBtn");
         const imagePreview = document.getElementById("imagePreview");
@@ -241,7 +417,6 @@
         let imageBase64 = null;
         let stream = null;
 
-        // Initialize webcam with error handling
         async function initializeWebcam() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ 
@@ -263,7 +438,6 @@
 
         initializeWebcam();
 
-        // Capture Image
         captureBtn.addEventListener("click", () => {
             const canvas = document.createElement("canvas");
             canvas.width = video.videoWidth;
@@ -274,7 +448,6 @@
             displayImage(imageBase64);
         });
 
-        // Handle file upload
         imageInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -303,57 +476,53 @@
             resultDiv.style.display = "none";
         }
 
-        // Submit Button
- // Replace the fetch call in your frontend JavaScript with this updated version
-// Replace your existing fetch call with this updated version
-submitBtn.addEventListener("click", async () => {
-    if (!imageBase64) {
-        errorMessage.textContent = "Please capture or upload an image first";
-        errorMessage.style.display = "block";
-        return;
-    }
+        submitBtn.addEventListener("click", async () => {
+            if (!imageBase64) {
+                errorMessage.textContent = "Please capture or upload an image first";
+                errorMessage.style.display = "block";
+                return;
+            }
 
-    submitBtn.disabled = true;
-    loadingSpinner.style.display = "block";
-    errorMessage.style.display = "none";
-    resultDiv.style.display = "none";
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = "block";
+            errorMessage.style.display = "none";
+            resultDiv.style.display = "none";
 
-    try {
-        const cleanImageBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
-        const response = await fetch("http://localhost:5000/predict", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            mode: 'cors',
-            credentials: 'same-origin', // Changed from 'include' to 'same-origin'
-            body: JSON.stringify({ image_data: cleanImageBase64 })
+            try {
+                const cleanImageBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+                const response = await fetch("http://localhost:5000/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    mode: 'cors',
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ image_data: cleanImageBase64 })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Server responded with ${response.status}`);
+                }
+
+                const data = await response.json();
+                resultDiv.style.display = "block";
+                resultDiv.innerHTML = `
+                    <strong>Food Item:</strong> ${data.food}<br>
+                    <strong>Calories:</strong> ${data.calories} kcal/100g<br>
+                    <strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%
+                `;
+            } catch (err) {
+                errorMessage.textContent = "Error analyzing image. Please try again.";
+                errorMessage.style.display = "block";
+                console.error("Prediction error:", err);
+            } finally {
+                submitBtn.disabled = false;
+                loadingSpinner.style.display = "none";
+            }
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `Server responded with ${response.status}`);
-        }
-
-        const data = await response.json();
-        resultDiv.style.display = "block";
-        resultDiv.innerHTML = `
-            <strong>Food Item:</strong> ${data.food}<br>
-            <strong>Calories:</strong> ${data.calories} kcal/100g<br>
-            <strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%
-        `;
-    } catch (err) {
-        errorMessage.textContent = "Error analyzing image. Please try again.";
-        errorMessage.style.display = "block";
-        console.error("Prediction error:", err);
-    } finally {
-        submitBtn.disabled = false;
-        loadingSpinner.style.display = "none";
-    }
-});
-
-        // Cancel Button
         cancelBtn.addEventListener("click", () => {
             imagePreview.style.display = "none";
             resultDiv.style.display = "none";
@@ -363,7 +532,6 @@ submitBtn.addEventListener("click", async () => {
             imageInput.value = "";
         });
 
-        // Cleanup on page unload
         window.addEventListener("beforeunload", () => {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());

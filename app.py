@@ -39,7 +39,8 @@ app = Flask(__name__)
 ALLOWED_ORIGINS = [
     'http://127.0.0.1:5000',
     'http://localhost:5000',
-    'https://calorie-estimator-to6k.onrender.com'
+    'https://calorie-estimator-to6k.onrender.com',
+    'https://calorie-estimator-to6k.onrender.com/'
 ]
 
 # Configure CORS

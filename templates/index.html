@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Calorie Estimator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOM5K2I0hYkz8VJLMJ+Om65Fjc6qEEe5ySiViw9" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* General Styles */
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background: url('https://source.unsplash.com/1600x900/?healthy-food') no-repeat center center fixed;
-            background-size: cover;
+            background-color: #f5f5f5;
             color: #333;
         }
 
@@ -32,29 +31,13 @@
             font-size: 1.8em;
         }
 
-        /* Footer */
-        footer {
-            position: sticky;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-            font-size: 14px;
-        }
-
-        footer a {
-            color: #28a745;
-            text-decoration: none;
-        }
-
         /* Container */
         .container {
-            max-width: 90%;
+            max-width: 800px;
             margin: 20px auto;
-            background: rgba(255, 255, 255, 0.9);
+            background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             padding: 20px;
         }
@@ -69,11 +52,11 @@
         .video-container {
             margin: 20px auto;
             text-align: center;
+            max-width: 400px;
         }
 
         video, img {
             width: 100%;
-            max-width: 400px;
             border-radius: 10px;
             margin: 10px auto;
             display: block;
@@ -117,7 +100,7 @@
             border: 2px dashed #28a745;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .upload-section label:hover {
@@ -132,14 +115,8 @@
             background: linear-gradient(135deg, #28a745, #218838);
             color: white;
             border-radius: 5px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             text-align: center;
             display: none;
-        }
-
-        .result strong {
-            display: block;
-            font-size: 1.2em;
         }
 
         .action-buttons {
@@ -147,6 +124,7 @@
             justify-content: center;
             gap: 10px;
             margin-top: 20px;
+            margin-bottom: 55px;
             display: none;
         }
 
@@ -164,49 +142,45 @@
             color: white;
         }
 
-        .submit-btn:hover {
-            background: #218838;
-        }
-
         .cancel-btn {
             background: #dc3545;
             color: white;
         }
 
-        .cancel-btn:hover {
-            background: #c82333;
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+            text-align: center;
         }
 
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.5em;
-            }
-
-            .controls button, .action-buttons button {
-                padding: 8px 15px;
-                font-size: 14px;
-            }
-
-            .upload-section label {
-                padding: 8px 15px;
-            }
+        .loading-spinner i {
+            font-size: 2em;
+            color: #28a745;
+            animation: spin 1s infinite linear;
         }
 
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.2em;
-            }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-            .controls button, .action-buttons button {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
+        /* Error Message */
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
 
-            .upload-section label {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -219,29 +193,30 @@
         <div class="content">
             <p>Upload a food image or take a picture using your webcam to estimate calories (per 100 grams).</p>
 
-            <!-- Webcam Container -->
             <div class="video-container">
-                <video id="video" autoplay></video>
+                <video id="video" autoplay playsinline></video>
             </div>
             <div class="controls">
                 <button id="captureBtn"><i class="fas fa-camera"></i> Capture Image</button>
             </div>
 
-            <!-- File Upload Section -->
             <div class="upload-section">
                 <input type="file" id="imageInput" accept="image/*">
                 <label for="imageInput"><i class="fas fa-upload"></i> Upload Image</label>
             </div>
 
-            <!-- Image Preview -->
             <img id="imagePreview" alt="Image Preview" style="display:none;">
-
-            <!-- Results -->
+            
+            <div class="loading-spinner">
+                <i class="fas fa-spinner"></i>
+            </div>
+            
+            <div class="error-message"></div>
+            
             <div id="result" class="result"></div>
 
-            <!-- Submit and Cancel Buttons -->
             <div class="action-buttons">
-                <button class="submit-btn" id="submitBtn">Submit</button>
+                <button class="submit-btn" id="submitBtn">Analyze Image</button>
                 <button class="cancel-btn" id="cancelBtn">Cancel</button>
             </div>
         </div>
@@ -260,93 +235,139 @@
         const cancelBtn = document.getElementById("cancelBtn");
         const imageInput = document.getElementById("imageInput");
         const actionButtons = document.querySelector(".action-buttons");
+        const loadingSpinner = document.querySelector(".loading-spinner");
+        const errorMessage = document.querySelector(".error-message");
 
         let imageBase64 = null;
+        let stream = null;
 
-        // Webcam functionality
-        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-            video.srcObject = stream;
-        });
+        // Initialize webcam with error handling
+        async function initializeWebcam() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                video.srcObject = stream;
+                captureBtn.disabled = false;
+            } catch (err) {
+                console.error("Webcam error:", err);
+                errorMessage.textContent = "Could not access camera. Please check permissions or try uploading an image instead.";
+                errorMessage.style.display = "block";
+                captureBtn.disabled = true;
+            }
+        }
 
-        // Capture Image functionality
+        initializeWebcam();
+
+        // Capture Image
         captureBtn.addEventListener("click", () => {
-            // Capturing a still image from webcam
             const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            imageBase64 = canvas.toDataURL("image/png");
-
-            imagePreview.style.display = "block";
-            imagePreview.src = imageBase64; // Display captured image
-            actionButtons.style.display = "flex";
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            
+            imageBase64 = canvas.toDataURL("image/jpeg", 0.8);
+            displayImage(imageBase64);
         });
 
-        // Handle file upload preview
+        // Handle file upload
         imageInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    errorMessage.textContent = "Image size should be less than 5MB";
+                    errorMessage.style.display = "block";
+                    return;
+                }
+
                 const reader = new FileReader();
-                reader.onload = () => {
-                    imageBase64 = reader.result;
-                    imagePreview.style.display = "block";
-                    imagePreview.src = imageBase64; // Display uploaded image
-                    actionButtons.style.display = "flex";
+                reader.onload = () => displayImage(reader.result);
+                reader.onerror = () => {
+                    errorMessage.textContent = "Error reading file";
+                    errorMessage.style.display = "block";
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // Submit Button functionality
-        submitBtn.addEventListener("click", () => {
-            if (!imageBase64) {
-                alert("Please upload or capture an image first.");
-                return;
-            }
-            resultDiv.style.display = "block";
-            resultDiv.innerHTML = "Predicting...";
+        function displayImage(imageData) {
+            imageBase64 = imageData;
+            imagePreview.style.display = "block";
+            imagePreview.src = imageData;
+            actionButtons.style.display = "flex";
+            errorMessage.style.display = "none";
+            resultDiv.style.display = "none";
+        }
 
-            // Function to send Base64 image to the /predict API
-            async function sendImageToPredict(imageBase64) {
-                try {
-                    // Remove any data URI prefix like "data:image/png;base64,"
-                    let cleanImageBase64 = imageBase64.replace(/^data:image\/(png|jpeg);base64,/, "");
-                    const response = await fetch("https://calorie-estimator-to6k.onrender.com/predict", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            
-                        },
-                        body: JSON.stringify({ image_data: cleanImageBase64 }),
-                        mode: 'cors',
-                    });
+        // Submit Button
+ // Replace the fetch call in your frontend JavaScript with this updated version
+// Replace your existing fetch call with this updated version
+submitBtn.addEventListener("click", async () => {
+    if (!imageBase64) {
+        errorMessage.textContent = "Please capture or upload an image first";
+        errorMessage.style.display = "block";
+        return;
+    }
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        resultDiv.innerHTML = `
-                            <strong>Prediction:</strong> ${data.food} <br>
-                            <strong>Calories:</strong> ${data.calories} kcal
-                        `;
-                    } else {
-                        const error = await response.json();
-                        resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
-                    }
-                } catch (err) {
-                    console.error(err);
-                    resultDiv.innerHTML = `<strong>Error:</strong> Could not connect to the server.`;
-                }
-            }
+    submitBtn.disabled = true;
+    loadingSpinner.style.display = "block";
+    errorMessage.style.display = "none";
+    resultDiv.style.display = "none";
 
-            sendImageToPredict(imageBase64); // Send image to prediction API
+    try {
+        const cleanImageBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+        const response = await fetch("https://calorie-estimator-to6k.onrender.com/predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            mode: 'cors',
+            credentials: 'same-origin', // Changed from 'include' to 'same-origin'
+            body: JSON.stringify({ image_data: cleanImageBase64 })
         });
 
-        // Cancel Button functionality
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Server responded with ${response.status}`);
+        }
+
+        const data = await response.json();
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = `
+            <strong>Food Item:</strong> ${data.food}<br>
+            <strong>Calories:</strong> ${data.calories} kcal/100g<br>
+            <strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%
+        `;
+    } catch (err) {
+        errorMessage.textContent = "Error analyzing image. Please try again.";
+        errorMessage.style.display = "block";
+        console.error("Prediction error:", err);
+    } finally {
+        submitBtn.disabled = false;
+        loadingSpinner.style.display = "none";
+    }
+});
+
+        // Cancel Button
         cancelBtn.addEventListener("click", () => {
             imagePreview.style.display = "none";
             resultDiv.style.display = "none";
             actionButtons.style.display = "none";
-            imageBase64 = null; // Clear stored image
+            errorMessage.style.display = "none";
+            imageBase64 = null;
+            imageInput.value = "";
+        });
+
+        // Cleanup on page unload
+        window.addEventListener("beforeunload", () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
         });
     </script>
 </body>

@@ -10,6 +10,11 @@ from dotenv import load_dotenv
 from io import BytesIO
 from json import JSONEncoder
 from flask_cors import CORS  
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load Environment Variables
 load_dotenv()
@@ -29,31 +34,35 @@ class NumpyEncoder(JSONEncoder):
 
 # Flask App Initialization
 app = Flask(__name__)
-# Enable CORS for all routes
-# Enable CORS with security configurations
+
+# Define allowed origins
+ALLOWED_ORIGINS = [
+    'http://127.0.0.1:5000',
+    'http://localhost:5000',
+    'https://calorie-estimator-to6k.onrender.com'
+]
+
+# Configure CORS
 CORS(app, resources={
     r"/*": {
-        "origins": [
-            "https://calorie-estimator-to6k.onrender.com",  # Your frontend domain
-            "https://calorie-estimator-to6k.onrender.com/",  # With trailing slash
-            "http://localhost:3000",
-            "http://127.0.0.1:5000"
-        ],
+        "origins": ALLOWED_ORIGINS,
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept", "Origin"],
         "expose_headers": ["Content-Type"],
         "supports_credentials": True,
-        "max_age": 600
+        "max_age": 3600
     }
 })
 
-# Additional security headers
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://calorie-estimator-to6k.onrender.com')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    origin = request.headers.get('Origin')
+    if origin in ALLOWED_ORIGINS:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept,Origin')
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Max-Age', '3600')
     return response
 
 app.json_encoder = NumpyEncoder
@@ -121,57 +130,69 @@ def preprocess_image(image, target_size=(299, 299)):
 def home():
     return render_template('index.html')
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST','OPTIONS'])
 def predict():
-    # Check for Base64 image data
-    if request.is_json:
-        data = request.get_json()
-        if 'image_data' not in data:
-            return jsonify({"error": "No image data found in request"}), 400
-        try:
-            # Decode Base64 image
-            image_data = base64.b64decode(data['image_data'])
-            image = BytesIO(image_data)
-        except Exception as e:
-            return jsonify({"error": f"Invalid Base64 data: {e}"}), 400
     
-    # Check for file upload
-    elif 'image' in request.files:
-        file = request.files['image']
-        image = file
-    else:
-        return jsonify({"error": "No image provided"}), 400
-
+    # Handle preflight request
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    
     try:
-        # Preprocess the image
-        processed_image = preprocess_image(image)
+        # Check for Base64 image data
+        if request.is_json:
+            data = request.get_json()
+            if 'image_data' not in data:
+                return jsonify({"error": "No image data found in request"}), 400
+            try:
+                # Decode Base64 image
+                image_data = base64.b64decode(data['image_data'])
+                image = BytesIO(image_data)
+            except Exception as e:
+                return jsonify({"error": f"Invalid Base64 data: {e}"}), 400
         
-        # Predict using the model
-        predictions = model.predict(processed_image)
-        predicted_index = np.argmax(predictions)
-        
-        # Get the predicted food label
-        food_label = str(FOOD_LABELS[predicted_index])
-        
-        # Get calories using the food label as the key
-        calories = CALORIE_VALUES_DICT.get(food_label, 0)  # Use get() with default value
-        confidence = float(predictions[0][predicted_index])
-        
-        # Print debug information
-        print(f"Predicted food label: {food_label}")
-        print(f"Calories: {calories}")
-        print(f"Confidence: {confidence}")
-        print(f"Available food labels in dict: {list(CALORIE_VALUES_DICT.keys())}")
-        
-        # Return the prediction result
-        return jsonify({
-            "food": food_label,
-            "calories": calories,
-            "confidence": confidence
-        })
+        # Check for file upload
+        elif 'image' in request.files:
+            file = request.files['image']
+            image = file
+        else:
+            return jsonify({"error": "No image provided"}), 400
+
+        try:
+            # Preprocess the image
+            processed_image = preprocess_image(image)
+            
+            # Predict using the model
+            predictions = model.predict(processed_image)
+            predicted_index = np.argmax(predictions)
+            
+            # Get the predicted food label
+            food_label = str(FOOD_LABELS[predicted_index])
+            
+            # Get calories using the food label as the key
+            calories = CALORIE_VALUES_DICT.get(food_label, 0)  # Use get() with default value
+            confidence = float(predictions[0][predicted_index])
+            
+            # Print debug information
+            print(f"Predicted food label: {food_label}")
+            print(f"Calories: {calories}")
+            print(f"Confidence: {confidence}")
+            print(f"Available food labels in dict: {list(CALORIE_VALUES_DICT.keys())}")
+            
+            # Return the prediction result
+            return jsonify({
+                "food": food_label,
+                "calories": calories,
+                "confidence": confidence
+            })
+        except Exception as e:
+            print(f"Error details: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+    
     except Exception as e:
-        print(f"Error details: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Prediction error: {str(e)}")
+        return jsonify({"error": str(e)}), 500 
+
 
 # Run the App
 if __name__ == "__main__":

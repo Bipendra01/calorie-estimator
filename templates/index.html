@@ -18,31 +18,76 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            min-height: 100vh;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-                        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23FF6B6B' opacity='0.1'%3E%3Cpath d='M50,25 L75,50 L50,75 L25,50 Z'/%3E%3C/svg%3E"),
-                        url("/api/placeholder/1920/1080") center/cover fixed;
-            background-blend-mode: overlay;
-            position: relative;
-        }
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text-color);
+    min-height: 100vh;
+    background-color: #F5E6D3;
+    position: relative;
+}
 
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                linear-gradient(45deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 135, 135, 0.1) 100%),
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' opacity='0.05'%3E%3Cpath d='M30,15 C35,15 40,20 40,25 C40,30 35,35 30,35 C25,35 20,30 20,25 C20,20 25,15 30,15 Z'/%3E%3C/svg%3E");
-            pointer-events: none;
-            z-index: -1;
-        }
+.food-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://images.unsplash.com/photo-1543353071-873f17a7a088') center center,
+            url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd') top left,
+            url('https://images.unsplash.com/photo-1509440159596-0249088772ff') top right,
+            url('https://images.unsplash.com/photo-1482049016688-2d3e1b311543') bottom left;
+    background-size: cover, 200px 200px, 200px 200px, 200px 200px;
+    background-repeat: no-repeat, repeat, repeat, repeat;
+    filter: blur(4px);
+    opacity: 0.8;
+    z-index: -1;
+}
+
+/* Add a darkening overlay to improve content readability */
+.food-background::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+
+/* Add a gradient overlay for better text contrast */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        rgba(245, 230, 211, 0.9),
+        rgba(245, 230, 211, 0.7)
+    );
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Optional: Add a subtle vignette effect */
+.food-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle,
+        transparent 40%,
+        rgba(0, 0, 0, 0.1) 100%
+    );
+    pointer-events: none;
+}
 
         .header {
             background: linear-gradient(135deg, #FF6B6B, #FF8787);
@@ -81,10 +126,12 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+
+
         .container {
             max-width: 800px;
             margin: 2rem auto;
-            background: var(--card-background);
+            background: rgb(255 244 244 / 95%);
             border-radius: 1rem;
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
             padding: 2rem;
@@ -286,6 +333,10 @@
             animation: utensils 2s ease infinite;
         }
 
+        .header i.fa-mug-hot{
+            animation: utensils 2s ease infinite;
+        }
+
         @keyframes heartbeat {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); }
@@ -341,8 +392,15 @@
 </head>
 <!-- Rest of your HTML and JavaScript code remains the same -->
 <body>
+    <div class="food-background"></div>
+
     <div class="header">
-        <h1><i class="fas fa-utensils"></i> Food Calorie Estimator</h1>
+        <h1>
+            <i class="fas fa-utensils"></i> 
+            Food Calorie Estimator
+            <i class='fas fa-mug-hot'></i>
+            
+        </h1>
     </div>
 
     <div class="container">
